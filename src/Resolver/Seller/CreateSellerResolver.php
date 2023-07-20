@@ -5,11 +5,18 @@ namespace Medelse\DimplBundle\Resolver\Seller;
 use Medelse\DimplBundle\Resource\Seller;
 use Medelse\DimplBundle\Tool\ArrayFormatter;
 use Symfony\Component\Mime\Part\DataPart;
+use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class CreateSellerResolver
 {
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'application/pdf',
+    ];
+
     public function resolve(array $data): array
     {
         $resolver = new OptionsResolver();
@@ -33,8 +40,16 @@ class CreateSellerResolver
                 'identifierType' => $data['identifierType'],
                 'identifier' => $data['identifier'],
                 'iban' => $data['iban'],
-                'ownerIdFile' => new DataPart($data['idFileFront'], 'ownerIdFile', 'multipart/form-data'),
-                'ownerIdVerso' => empty($data['idFileBack']) ? null : new DataPart($data['idFileBack'], 'ownerIdVerso', 'multipart/form-data'),
+                'ownerIdFile' => new DataPart(
+                    $data['idFileFront']['document'],
+                    $data['idFileFront']['fileName'],
+                    $data['idFileFront']['contentType']
+                ),
+                'ownerIdVerso' => empty($data['idFileBack']) ? null : new DataPart(
+                    $data['idFileBack']['document'],
+                    $data['idFileBack']['fileName'],
+                    $data['idFileBack']['contentType']
+                ),
                 'dimplTermsAcceptationDateTime' => $data['termsAcceptationDate'],
             ]
         );
@@ -97,7 +112,7 @@ class CreateSellerResolver
                 return strtoupper($value);
             })
             ->setAllowedValues('birthCountry', function ($value) {
-                return preg_match('/^[a-zA-Z]{2}$/', $value);
+                return is_null($value) || preg_match('/^[a-zA-Z]{2}$/', $value);
             })
             ->setAllowedTypes('addressFirst', ['null', 'string'])
             ->setAllowedTypes('addressCity', ['null', 'string'])
@@ -107,7 +122,7 @@ class CreateSellerResolver
                 return strtoupper($value);
             })
             ->setAllowedValues('addressCountry', function ($value) {
-                return preg_match('/^[a-zA-Z]{2}$/', $value);
+                return is_null($value) || preg_match('/^[a-zA-Z]{2}$/', $value);
             })
             ->setAllowedTypes('identifierType', ['string'])
             ->setAllowedValues('identifierType', function ($value) {
@@ -130,14 +145,53 @@ class CreateSellerResolver
                 if (Seller::IDENTIFIER_SIREN === $options['identifierType']) {
                     return is_string($value) ? str_replace(' ', '', $value) : $value;
                 }
+
                 return $value;
             })
             ->setAllowedTypes('iban', ['string'])
             ->setNormalizer('iban', function (Options $options, $value) {
                 return strtoupper(str_replace(' ', '', $value));
             })
-            ->setAllowedTypes('idFileFront', ['string'])
-            ->setAllowedTypes('idFileBack', ['null', 'string'])
+            ->setAllowedTypes('idFileFront', ['array'])
+            ->setAllowedValues('idFileFront', function (&$value) {
+                if (empty($value)) {
+                    throw new InvalidOptionsException('Option "idFileFront" cannot be empty');
+                }
+
+                if (empty($value['document']) || empty($value['contentType'])) {
+                    throw new InvalidOptionsException('Option "idFileFront" must be an array and have document and contentType keys (fileName is optional)');
+                }
+
+                if (!in_array($value['contentType'], self::ALLOWED_MIME_TYPES)) {
+                    throw new InvalidOptionsException('Value "contentType" of option "idFileFront" invalid');
+                }
+
+                if (empty($value['fileName'])) {
+                    $value['fileName'] = 'ownerIdFile';
+                }
+
+                return true;
+            })
+            ->setAllowedTypes('idFileBack', ['null', 'array'])
+            ->setAllowedValues('idFileBack', function (&$value) {
+                if (empty($value)) {
+                    return true;
+                }
+
+                if (empty($value['document']) || empty($value['contentType'])) {
+                    throw new InvalidOptionsException('Option "idFileBack" must be an array and have document and contentType keys (fileName is optional)');
+                }
+
+                if (!in_array($value['contentType'], self::ALLOWED_MIME_TYPES)) {
+                    throw new InvalidOptionsException('Value "contentType" of option "idFileBack" invalid');
+                }
+
+                if (empty($value['fileName'])) {
+                    $value['fileName'] = 'ownerIdVerso';
+                }
+
+                return true;
+            })
             ->setAllowedTypes('termsAcceptationDate', [\DateTimeInterface::class])
             ->setNormalizer('termsAcceptationDate', function (Options $options, $value) {
                 return $value->format(\DateTimeInterface::ATOM);

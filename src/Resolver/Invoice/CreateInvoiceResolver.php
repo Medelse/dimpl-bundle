@@ -11,6 +11,12 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class CreateInvoiceResolver
 {
+    private const ALLOWED_MIME_TYPES = [
+        'image/jpeg',
+        'image/png',
+        'application/pdf',
+    ];
+
     public function resolve(array $data): array
     {
         $resolver = new OptionsResolver();
@@ -19,12 +25,12 @@ class CreateInvoiceResolver
 
         $extraData = [];
         if (!empty($data['additionalFiles'])) {
-            foreach ($data['additionalFiles'] as $key => $invoiceAdditionalFile) {
+            foreach ($data['additionalFiles'] as $invoiceAdditionalFile) {
                 $extraData[] = [
                     'additionalFiles' => new DataPart(
-                        $invoiceAdditionalFile,
-                        'invoiceAdditionalFile_'.$key,
-                        'multipart/form-data'
+                        $invoiceAdditionalFile['document'],
+                        $invoiceAdditionalFile['fileName'],
+                        $invoiceAdditionalFile['contentType']
                     )
                 ];
             }
@@ -43,7 +49,11 @@ class CreateInvoiceResolver
                     'invoiceDueDate' => $data['dueDate'],
                     'invoiceAmountWithoutTaxesCents' => $data['amountWithoutTaxes'],
                     'invoiceAmountOfTaxesCents' => $data['amountOfTaxes'],
-                    'invoiceFile' => new DataPart($data['file'], 'file', 'multipart/form-data'),
+                    'invoiceFile' => new DataPart(
+                        $data['file']['document'],
+                        $data['file']['fileName'],
+                        $data['file']['contentType']
+                    ),
                     'deliveryValidationDateTime' => $data['deliveryValidationDateTime'],
                 ],
                 $extraData
@@ -138,12 +148,39 @@ class CreateInvoiceResolver
             ->setNormalizer('amountOfTaxes', function (Options $options, $value) {
                 return (string) $value;
             })
-            ->setAllowedTypes('file', ['string'])
+            ->setAllowedTypes('file', ['array'])
+            ->setAllowedValues('file', function (&$value) {
+                if (empty($value)) {
+                    return true;
+                }
+
+                if (empty($value['document']) || empty($value['contentType'])) {
+                    throw new InvalidOptionsException('Option "file" must be an array and have document and contentType keys (fileName is optional)');
+                }
+
+                if (!in_array($value['contentType'], self::ALLOWED_MIME_TYPES)) {
+                    throw new InvalidOptionsException('Value "contentType" of option "file" invalid');
+                }
+
+                if (empty($value['fileName'])) {
+                    $value['fileName'] = 'file';
+                }
+
+                return true;
+            })
             ->setAllowedTypes('additionalFiles', ['null', 'array'])
-            ->setAllowedValues('additionalFiles', function ($value) {
-                foreach ($value as $invoiceAdditionalFile) {
-                    if (!is_string($invoiceAdditionalFile)) {
-                        throw new InvalidOptionsException('Option "additionalFiles" must be an array of string');
+            ->setAllowedValues('additionalFiles', function (&$value) {
+                foreach ($value as $key => &$invoiceAdditionalFile) {
+                    if (empty($invoiceAdditionalFile['document']) || empty($invoiceAdditionalFile['contentType'])) {
+                        throw new InvalidOptionsException('Option "additionalFiles" must be an array and each element have document and contentType keys (fileName is optional)');
+                    }
+
+                    if (!in_array($invoiceAdditionalFile['contentType'], self::ALLOWED_MIME_TYPES)) {
+                        throw new InvalidOptionsException('Value "contentType" of option "additionalFiles" invalid');
+                    }
+
+                    if (empty($invoiceAdditionalFile['fileName'])) {
+                        $invoiceAdditionalFile['fileName'] = 'additionalFiles_'.$key;
                     }
                 }
 

@@ -53,8 +53,14 @@ class SellerTest extends TestCase
             'identifierType' => 'siren',
             'identifier' => '123456789',
             'iban' => 'FR14 3000 1019 0100 00Z6 7067 032',
-            'idFileFront' => 'zombies_front',
-            'idFileBack' => 'zombies_back',
+            'idFileFront' => [
+                'document' => 'zombies_front.pdf',
+                'contentType' => 'application/pdf',
+            ],
+            'idFileBack' => [
+                'document' => 'zombies_back.pdf',
+                'contentType' => 'application/pdf',
+            ],
             'termsAcceptationDate' => new \DateTime('2022-01-01 10:00:00'),
         ];
     }

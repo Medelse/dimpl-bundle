@@ -188,8 +188,20 @@ class InvoiceTest extends TestCase
             'dueDate' => new \DateTime('2023-03-01 18:00:00'),
             'amountWithoutTaxes' => 10000,
             'amountOfTaxes' => 0,
-            'file' => 'zombies_invoice',
-            'additionalFiles' => ['zombies_invoice_extra_1', 'zombies_invoice_extra_2'],
+            'file' => [
+                'document' => 'zombies_invoice.pdf',
+                'contentType' => 'application/pdf',
+            ],
+            'additionalFiles' => [
+                [
+                    'document' => 'zombies_invoice_extra_1.pdf',
+                    'contentType' => 'application/pdf',
+                ],
+                [
+                    'document' => 'zombies_invoice_extra_2.pdf',
+                    'contentType' => 'application/pdf',
+                ],
+            ],
             'deliveryValidationDateTime' => new \DateTime('2023-01-01 09:00:00'),
         ];
     }
