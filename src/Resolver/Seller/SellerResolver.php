@@ -9,7 +9,7 @@ use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class CreateSellerResolver
+class SellerResolver
 {
     private const ALLOWED_MIME_TYPES = [
         'image/jpeg',

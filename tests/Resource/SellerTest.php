@@ -29,6 +29,24 @@ class SellerTest extends TestCase
         $sellerResource->createSeller($this->getSellerData());
     }
 
+    public function testUpdateSeller()
+    {
+        $sellerResource = $this->getSellerResource('');
+        $response = $sellerResource->updateSeller('123', $this->getSellerData());
+
+        $this->assertIsArray($response);
+        $this->assertEquals(0, count($response));
+    }
+
+    public function testUpdateSellerReturnsError()
+    {
+        $sellerResource = $this->getSellerResource('error',401);
+
+        $this->expectException(BadRequestException::class);
+        $this->expectExceptionMessage('Error 401 : error');
+        $sellerResource->updateSeller('123', $this->getSellerData());
+    }
+
     /**
      *
      * PRIVATE

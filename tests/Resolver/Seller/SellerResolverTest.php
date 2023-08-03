@@ -2,18 +2,18 @@
 
 namespace Medelse\DimplBundle\Tests\Resolver\Seller;
 
-use Medelse\DimplBundle\Resolver\Seller\CreateSellerResolver;
+use Medelse\DimplBundle\Resolver\Seller\SellerResolver;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Mime\Part\DataPart;
 use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 
-class CreateSellerResolverTest extends TestCase
+class SellerResolverTest extends TestCase
 {
     public function testResolve()
     {
         $user = $this->getUser();
 
-        $resolver = new CreateSellerResolver();
+        $resolver = new SellerResolver();
         $data = $resolver->resolve($user);
 
         $this->assertIsArray($data);
@@ -60,7 +60,7 @@ class CreateSellerResolverTest extends TestCase
         $user = $this->getUser();
         $user['identifierType'] = 'Little Rock';
 
-        $resolver = new CreateSellerResolver();
+        $resolver = new SellerResolver();
         $this->expectException(InvalidOptionsException::class);
         $resolver->resolve($user);
     }
@@ -70,7 +70,7 @@ class CreateSellerResolverTest extends TestCase
         $user = $this->getUser();
         $user['identifier'] = '123 456 789';
 
-        $resolver = new CreateSellerResolver();
+        $resolver = new SellerResolver();
         $data = $resolver->resolve($user);
 
         $this->assertIsArray($data);
@@ -83,7 +83,7 @@ class CreateSellerResolverTest extends TestCase
         $user = $this->getUser();
         $user['iban'] = 'fr14 3000 1019 0100 00z6 7067 032';
 
-        $resolver = new CreateSellerResolver();
+        $resolver = new SellerResolver();
         $data = $resolver->resolve($user);
 
         $this->assertIsArray($data);
@@ -95,7 +95,7 @@ class CreateSellerResolverTest extends TestCase
         $user = $this->getUser();
         $user['email'] = 'this_is_not_a_valid_email';
 
-        $resolver = new CreateSellerResolver();
+        $resolver = new SellerResolver();
         $this->expectException(InvalidOptionsException::class);
         $resolver->resolve($user);
     }
@@ -105,7 +105,7 @@ class CreateSellerResolverTest extends TestCase
         $user = $this->getUser();
         $user['idFileBack'] = null;
 
-        $resolver = new CreateSellerResolver();
+        $resolver = new SellerResolver();
         $data = $resolver->resolve($user);
         $this->assertArrayNotHasKey('ownerIdVerso', $data);
     }

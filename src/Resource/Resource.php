@@ -115,6 +115,12 @@ abstract class Resource
             );
         }
 
-        return $response->toArray(false);
+        try {
+            $data = $response->toArray(false);
+        } catch (\JsonException $e) {
+            $data = [];
+        }
+
+        return $data;
     }
 }

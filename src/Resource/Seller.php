@@ -2,7 +2,7 @@
 
 namespace Medelse\DimplBundle\Resource;
 
-use Medelse\DimplBundle\Resolver\Seller\CreateSellerResolver;
+use Medelse\DimplBundle\Resolver\Seller\SellerResolver;
 use Symfony\Component\HttpFoundation\Request;
 
 class Seller extends Resource
@@ -17,15 +17,29 @@ class Seller extends Resource
     public const IDENTIFIER_VAT = 'vat';
 
     public const CREATE_USER_URL = '/'.self::API_VERSION.'/sellers';
+    public const UPDATE_USER_URL = '/'.self::API_VERSION.'/sellers/{sellerId}';
 
     public function createSeller(array $data): array
     {
-        $createResolver = new CreateSellerResolver();
-
         return $this->sendRequestFormData(
             Request::METHOD_POST,
             self::CREATE_USER_URL,
-            $createResolver->resolve($data)
+            (new SellerResolver())->resolve($data)
+        );
+    }
+
+    public function updateSeller(string $sellerId, array $data): array
+    {
+        $path = str_replace(
+            '{sellerId}',
+            $sellerId,
+            self::UPDATE_USER_URL
+        );
+
+        return $this->sendRequestFormData(
+            Request::METHOD_PUT,
+            $path,
+            (new SellerResolver())->resolve($data)
         );
     }
 }
