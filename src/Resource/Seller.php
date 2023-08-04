@@ -36,7 +36,7 @@ class Seller extends Resource
             self::UPDATE_USER_URL
         );
 
-        return $this->sendRequestFormData(
+        return $this->sendPostOrPatchOrPutRequest(
             Request::METHOD_PUT,
             $path,
             (new SellerResolver())->resolve($data)

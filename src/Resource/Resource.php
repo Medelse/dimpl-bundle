@@ -39,9 +39,9 @@ abstract class Resource
         return $this->processResponse($response);
     }
 
-    protected function sendPostOrPatchRequest(string $method, string $path, array $body = []): array
+    protected function sendPostOrPatchOrPutRequest(string $method, string $path, array $body = []): array
     {
-        $allowedMethods = [Request::METHOD_POST, Request::METHOD_PATCH];
+        $allowedMethods = [Request::METHOD_POST, Request::METHOD_PATCH, Request::METHOD_PUT];
         if (!in_array($method, $allowedMethods)) {
             throw new \InvalidArgumentException(sprintf('Allowed http methods for function sendPostOrPatchRequest are %s', implode(', ', $allowedMethods)));
         }
