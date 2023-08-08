@@ -13,8 +13,8 @@ class Configuration implements ConfigurationInterface
 
         $treeBuilder->getRootNode()
             ->children()
-                ->scalarNode('base_url')->end()
-                ->scalarNode('api_key')->end()
+                ->scalarNode('base_url')->defaultValue('')->end()
+                ->scalarNode('api_key')->defaultValue('')->end()
             ->end()
         ;
 
