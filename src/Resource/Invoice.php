@@ -112,10 +112,6 @@ class Invoice extends Resource
             }
         }
 
-        if (isset($response['amountLeftToPayCents']) and $response['amountLeftToPayCents'] > 0) {
-            return self::STATUS_PENDING;
-        }
-
         return self::STATUS_PROCESSING;
     }
 }
