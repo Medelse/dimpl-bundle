@@ -11,51 +11,57 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class SellerResolver
 {
+    public const RESOLVE_CREATE = 'RESOLVE_CREATE';
+    public const RESOLVE_UPDATE = 'RESOLVE_UPDATE';
+
     private const ALLOWED_MIME_TYPES = [
         'image/jpeg',
         'image/png',
         'application/pdf',
     ];
 
-    public function resolve(array $data): array
+    public function resolve(array $data, string $resolverMode): array
     {
         $resolver = new OptionsResolver();
-        $this->configureOptionsResolver($resolver);
+        $this->configureOptionsResolver($resolver, $resolverMode);
         $data = $resolver->resolve($data);
 
-        return ArrayFormatter::removeNullValues(
-            [
-                'ownerMobilePhone' => $data['phone'],
-                'ownerEmail' => $data['email'],
-                'ownerFirstName' => $data['givenName'],
-                'ownerLastName' => $data['familyName'],
-                'ownerNationality' => $data['nationality'],
-                'ownerBirthDate' => $data['birthDate'],
-                'ownerBirthCity' => $data['birthCity'],
-                'ownerBirthCountry' => $data['birthCountry'],
-                'ownerHomeAddress' => $data['addressFirst'],
-                'ownerHomeCity' => $data['addressCity'],
-                'ownerHomePostCode' => $data['addressPostal'],
-                'ownerHomeCountry' => $data['addressCountry'],
-                'identifierType' => $data['identifierType'],
-                'identifier' => $data['identifier'],
-                'iban' => $data['iban'],
-                'ownerIdFile' => new DataPart(
-                    $data['idFileFront']['document'],
-                    $data['idFileFront']['fileName'],
-                    $data['idFileFront']['contentType']
-                ),
-                'ownerIdVerso' => empty($data['idFileBack']) ? null : new DataPart(
-                    $data['idFileBack']['document'],
-                    $data['idFileBack']['fileName'],
-                    $data['idFileBack']['contentType']
-                ),
-                'dimplTermsAcceptationDateTime' => $data['termsAcceptationDate'],
-            ]
-        );
+        $result =  [
+            'ownerMobilePhone' => $data['phone'],
+            'ownerEmail' => $data['email'],
+            'ownerFirstName' => $data['givenName'],
+            'ownerLastName' => $data['familyName'],
+            'ownerNationality' => $data['nationality'],
+            'ownerBirthDate' => $data['birthDate'],
+            'ownerBirthCity' => $data['birthCity'],
+            'ownerBirthCountry' => $data['birthCountry'],
+            'ownerHomeAddress' => $data['addressFirst'],
+            'ownerHomeCity' => $data['addressCity'],
+            'ownerHomePostCode' => $data['addressPostal'],
+            'ownerHomeCountry' => $data['addressCountry'],
+            'identifierType' => $data['identifierType'],
+            'identifier' => $data['identifier'],
+            'ownerIdFile' => new DataPart(
+                $data['idFileFront']['document'],
+                $data['idFileFront']['fileName'],
+                $data['idFileFront']['contentType']
+            ),
+            'ownerIdVerso' => empty($data['idFileBack']) ? null : new DataPart(
+                $data['idFileBack']['document'],
+                $data['idFileBack']['fileName'],
+                $data['idFileBack']['contentType']
+            ),
+            'dimplTermsAcceptationDateTime' => $data['termsAcceptationDate'],
+        ];
+
+        if ($resolverMode === self::RESOLVE_CREATE) {
+            $result['iban'] = $data['iban'];
+        }
+
+        return ArrayFormatter::removeNullValues($result);
     }
 
-    private function configureOptionsResolver(OptionsResolver $resolver): void
+    private function configureOptionsResolver(OptionsResolver $resolver, string $resolverMode): void
     {
         $resolver->setDefined([
             'phone',
@@ -78,17 +84,22 @@ class SellerResolver
             'termsAcceptationDate',
         ]);
 
-        $resolver->setRequired([
+        $required = [
             'phone',
             'email',
             'givenName',
             'familyName',
             'identifierType',
             'identifier',
-            'iban',
             'idFileFront',
             'termsAcceptationDate',
-        ]);
+        ];
+
+        if ($resolverMode === self::RESOLVE_CREATE) {
+            $result[] = 'iban';
+        }
+
+        $resolver->setRequired($required);
 
         $resolver
             ->setAllowedTypes('phone', ['string'])
