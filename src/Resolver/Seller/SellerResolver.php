@@ -26,39 +26,36 @@ class SellerResolver
         $this->configureOptionsResolver($resolver, $resolverMode);
         $data = $resolver->resolve($data);
 
-        $result =  [
-            'ownerMobilePhone' => $data['phone'],
-            'ownerEmail' => $data['email'],
-            'ownerFirstName' => $data['givenName'],
-            'ownerLastName' => $data['familyName'],
-            'ownerNationality' => $data['nationality'],
-            'ownerBirthDate' => $data['birthDate'],
-            'ownerBirthCity' => $data['birthCity'],
-            'ownerBirthCountry' => $data['birthCountry'],
-            'ownerHomeAddress' => $data['addressFirst'],
-            'ownerHomeCity' => $data['addressCity'],
-            'ownerHomePostCode' => $data['addressPostal'],
-            'ownerHomeCountry' => $data['addressCountry'],
-            'identifierType' => $data['identifierType'],
-            'identifier' => $data['identifier'],
-            'ownerIdFile' => new DataPart(
-                $data['idFileFront']['document'],
-                $data['idFileFront']['fileName'],
-                $data['idFileFront']['contentType']
-            ),
-            'ownerIdVerso' => empty($data['idFileBack']) ? null : new DataPart(
-                $data['idFileBack']['document'],
-                $data['idFileBack']['fileName'],
-                $data['idFileBack']['contentType']
-            ),
-            'dimplTermsAcceptationDateTime' => $data['termsAcceptationDate'],
-        ];
-
-        if ($resolverMode === self::RESOLVE_CREATE) {
-            $result['iban'] = $data['iban'];
-        }
-
-        return ArrayFormatter::removeNullValues($result);
+        return ArrayFormatter::removeNullValues(
+            [
+                'ownerMobilePhone' => $data['phone'],
+                'ownerEmail' => $data['email'],
+                'ownerFirstName' => $data['givenName'],
+                'ownerLastName' => $data['familyName'],
+                'ownerNationality' => $data['nationality'],
+                'ownerBirthDate' => $data['birthDate'],
+                'ownerBirthCity' => $data['birthCity'],
+                'ownerBirthCountry' => $data['birthCountry'],
+                'ownerHomeAddress' => $data['addressFirst'],
+                'ownerHomeCity' => $data['addressCity'],
+                'ownerHomePostCode' => $data['addressPostal'],
+                'ownerHomeCountry' => $data['addressCountry'],
+                'identifierType' => $data['identifierType'],
+                'identifier' => $data['identifier'],
+                'iban' => $data['iban'] ?? null,
+                'ownerIdFile' => new DataPart(
+                    $data['idFileFront']['document'],
+                    $data['idFileFront']['fileName'],
+                    $data['idFileFront']['contentType']
+                ),
+                'ownerIdVerso' => empty($data['idFileBack']) ? null : new DataPart(
+                    $data['idFileBack']['document'],
+                    $data['idFileBack']['fileName'],
+                    $data['idFileBack']['contentType']
+                ),
+                'dimplTermsAcceptationDateTime' => $data['termsAcceptationDate'],
+            ]
+        );
     }
 
     private function configureOptionsResolver(OptionsResolver $resolver, string $resolverMode): void
@@ -95,8 +92,8 @@ class SellerResolver
             'termsAcceptationDate',
         ];
 
-        if ($resolverMode === self::RESOLVE_CREATE) {
-            $result[] = 'iban';
+        if (self::RESOLVE_CREATE === $resolverMode) {
+            $required[] = 'iban';
         }
 
         $resolver->setRequired($required);
