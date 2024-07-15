@@ -24,7 +24,7 @@ class Seller extends Resource
         return $this->sendRequestFormData(
             Request::METHOD_POST,
             self::CREATE_USER_URL,
-            (new SellerResolver())->resolve($data)
+            (new SellerResolver())->resolve($data, SellerResolver::RESOLVE_CREATE)
         );
     }
 
@@ -39,7 +39,7 @@ class Seller extends Resource
         return $this->sendPostOrPatchOrPutRequest(
             Request::METHOD_PUT,
             $path,
-            (new SellerResolver())->resolve($data)
+            (new SellerResolver())->resolve($data, SellerResolver::RESOLVE_UPDATE)
         );
     }
 }
