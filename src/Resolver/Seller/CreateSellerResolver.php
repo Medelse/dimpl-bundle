@@ -9,21 +9,18 @@ use Symfony\Component\OptionsResolver\Exception\InvalidOptionsException;
 use Symfony\Component\OptionsResolver\Options;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
-class SellerResolver
+class CreateSellerResolver
 {
-    public const RESOLVE_CREATE = 'RESOLVE_CREATE';
-    public const RESOLVE_UPDATE = 'RESOLVE_UPDATE';
-
     private const ALLOWED_MIME_TYPES = [
         'image/jpeg',
         'image/png',
         'application/pdf',
     ];
 
-    public function resolve(array $data, string $resolverMode): array
+    public function resolve(array $data): array
     {
         $resolver = new OptionsResolver();
-        $this->configureOptionsResolver($resolver, $resolverMode);
+        $this->configureOptionsResolver($resolver);
         $data = $resolver->resolve($data);
 
         return ArrayFormatter::removeNullValues(
@@ -42,7 +39,7 @@ class SellerResolver
                 'ownerHomeCountry' => $data['addressCountry'],
                 'identifierType' => $data['identifierType'],
                 'identifier' => $data['identifier'],
-                'iban' => $data['iban'] ?? null,
+                'iban' => $data['iban'],
                 'ownerIdFile' => new DataPart(
                     $data['idFileFront']['document'],
                     $data['idFileFront']['fileName'],
@@ -58,7 +55,7 @@ class SellerResolver
         );
     }
 
-    private function configureOptionsResolver(OptionsResolver $resolver, string $resolverMode): void
+    private function configureOptionsResolver(OptionsResolver $resolver): void
     {
         $resolver->setDefined([
             'phone',
@@ -81,7 +78,7 @@ class SellerResolver
             'termsAcceptationDate',
         ]);
 
-        $required = [
+        $resolver->setRequired([
             'phone',
             'email',
             'givenName',
@@ -90,13 +87,8 @@ class SellerResolver
             'identifier',
             'idFileFront',
             'termsAcceptationDate',
-        ];
-
-        if (self::RESOLVE_CREATE === $resolverMode) {
-            $required[] = 'iban';
-        }
-
-        $resolver->setRequired($required);
+            'iban',
+        ]);
 
         $resolver
             ->setAllowedTypes('phone', ['string'])
