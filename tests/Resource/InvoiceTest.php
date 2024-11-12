@@ -18,7 +18,7 @@ class InvoiceTest extends TestCase
         $this->assertIsArray($response);
         $this->assertArrayHasKey('invoiceId', $response);
         $this->assertEquals('12345', $response['invoiceId']);
-        $this->assertEquals('PROCESSING', $response['status']);
+        $this->assertEquals(Invoice::STATUS_PROCESSING, $response['status']);
     }
 
     public function testCreateInvoiceRefusedSuccess()
@@ -37,7 +37,7 @@ class InvoiceTest extends TestCase
         $this->assertArrayHasKey('invoiceId', $response);
         $this->assertEquals('12345', $response['invoiceId']);
         $this->assertEquals('Client non éligible', $response['notEligibleReason']);
-        $this->assertEquals('REFUSED', $response['status']);
+        $this->assertEquals(Invoice::STATUS_REFUSED, $response['status']);
     }
 
     public function testCreateInvoiceCannotFinanceSuccess()
@@ -127,21 +127,21 @@ class InvoiceTest extends TestCase
         $invoiceResource = $this->getInvoiceResource(json_encode($response));
         $response = $invoiceResource->getInvoice('123');
 
-        $this->assertEquals('PENDING', $response['status']);
+        $this->assertEquals(Invoice::STATUS_PROCESSING, $response['status']);
 
         //LATE
         $response['dueDate'] = (new \DateTime('-1 week'))->format('Y-m-d');
         $invoiceResource = $this->getInvoiceResource(json_encode($response));
         $response = $invoiceResource->getInvoice('123');
 
-        $this->assertEquals('LATE', $response['status']);
+        $this->assertEquals(Invoice::STATUS_LATE, $response['status']);
 
         //PAID
         $response['completelyPaidDate'] = '2023-001';
         $invoiceResource = $this->getInvoiceResource(json_encode($response));
         $response = $invoiceResource->getInvoice('123');
 
-        $this->assertEquals('PAID', $response['status']);
+        $this->assertEquals(Invoice::STATUS_PAID, $response['status']);
     }
 
     public function testGetInvoiceReturnsError()
@@ -158,7 +158,7 @@ class InvoiceTest extends TestCase
         $invoiceResource = $this->getInvoiceResource(json_encode($this->getInvoiceResponse()));
 
         $response = $invoiceResource->parseWebhookBody('[{"invoiceId": "123", "status": "Accepted"}]');
-        $this->assertEquals('PENDING', $response['status']);
+        $this->assertEquals(Invoice::STATUS_PROCESSING, $response['status']);
     }
 
     public function testGetHookStatusRefused()
@@ -166,7 +166,7 @@ class InvoiceTest extends TestCase
         $invoiceResource = $this->getInvoiceResource(json_encode($this->getInvoiceResponse()));
 
         $response = $invoiceResource->parseWebhookBody('[{"invoiceId": "123", "status": "Rejected"}]');
-        $this->assertEquals('REFUSED', $response['status']);
+        $this->assertEquals(Invoice::STATUS_REFUSED, $response['status']);
     }
 
     /**
