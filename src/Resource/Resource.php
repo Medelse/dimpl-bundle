@@ -24,7 +24,7 @@ abstract class Resource
         $this->dimplApiKey = $dimplApiKey;
     }
 
-    protected function sendGetRequest(string $path): array
+    protected function sendGetRequest(string $path, array $queryParams = []): array
     {
         $response = $this->httpClient->request(
             Request::METHOD_GET,
@@ -33,6 +33,7 @@ abstract class Resource
                 'headers' => [
                     self::API_KEY_HEADER . ':' . $this->dimplApiKey,
                 ],
+                'query' => $queryParams,
             ]
         );
 
